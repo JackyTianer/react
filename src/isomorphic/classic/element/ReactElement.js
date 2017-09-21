@@ -176,8 +176,11 @@ ReactElement.createElement = function(type, config, children) {
   }
 
   // Resolve default props
-  // 设置defaultPorps，
-  //type可能是普通标签或者ReactElement,当是ReactElement时，会用其中的defaultProps覆盖对应config的props
+  /**
+   *  设置defaultPorps，在这里如果type是ReactElement的话，则将defaultProps中属性填入props中，由上面代码知道
+   *  config对应着标签中的属性，也会将除了key ref __self __source的属性放入props中，如果有某个属性同时存在与config以及
+   *  defaultProps中，那么会用config中的属性（也就是标签上的属性）
+   */
   if (type && type.defaultProps) {
     var defaultProps = type.defaultProps;
     for (propName in defaultProps) {
@@ -186,6 +189,7 @@ ReactElement.createElement = function(type, config, children) {
       }
     }
   }
+  //这时候返回virtual DOM
   return ReactElement(
     type,
     key,

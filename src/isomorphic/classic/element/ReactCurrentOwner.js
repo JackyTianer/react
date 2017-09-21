@@ -25,6 +25,7 @@ var ReactCurrentOwner = {
    * @internal
    * @type {ReactComponent}
    */
+  //flow检查，current对象必须是null或者ReactInstance类型
   current: (null: null | ReactInstance),
 };
 
