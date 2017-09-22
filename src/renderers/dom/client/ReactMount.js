@@ -69,6 +69,12 @@ function getReactRootElementInContainer(container) {
     return null;
   }
 
+  /**
+   * 如果container是document的话返回documentElement即html元素
+   * 详见 [documentElement](https://developer.mozilla.org/zh-CN/docs/Web/API/Document/documentElement)
+   * 否则返回容器的firstChild
+   */
+
   if (container.nodeType === DOC_NODE_TYPE) {
     return container.documentElement;
   } else {
@@ -248,7 +254,10 @@ function isReactNode(node) {
 }
 
 function getHostRootInstanceInContainer(container) {
+  // 获取插入的容器元素
   var rootEl = getReactRootElementInContainer(container);
+
+  // 如果rootEl存在 prevHostInstance =  ReactDOMComponentTree.getInstanceFromNode(rootEl)
   var prevHostInstance =
     rootEl && ReactDOMComponentTree.getInstanceFromNode(rootEl);
   return prevHostInstance && !prevHostInstance._hostParent
@@ -407,27 +416,30 @@ var ReactMount = {
     );
   },
 
+  // ReactDom.render调用后 第一个参数默认传递null，因为该方法第一个参数是父组件，剩下三个参数和render函数一致
   _renderSubtreeIntoContainer: function(
     parentComponent,
     nextElement,
     container,
     callback,
   ) {
+    //判断callback是否为函数;
     ReactUpdateQueue.validateCallback(callback, 'ReactDOM.render');
 
-
+    //通过TopLevelWrapper创建一个容器节点，并且设置其this.props.child = render传入的ReactElement
     var nextWrappedElement = React.createElement(TopLevelWrapper, {
       child: nextElement,
     });
 
     var nextContext;
+    // 如果存在父组件，即不是顶级组件的情况下
     if (parentComponent) {
       var parentInst = ReactInstanceMap.get(parentComponent);
       nextContext = parentInst._processChildContext(parentInst._context);
     } else {
       nextContext = emptyObject;
     }
-
+    // 这时候preComponent = null;
     var prevComponent = getTopLevelWrapperInContainer(container);
 
     if (prevComponent) {
@@ -454,11 +466,14 @@ var ReactMount = {
     }
 
     var reactRootElement = getReactRootElementInContainer(container);
+    // 确定container是否被markup，即添加了data-reactid,第一次渲染肯定是false
     var containerHasReactMarkup =
       reactRootElement && !!internalGetID(reactRootElement);
+    // 目前为false
     var containerHasNonRootReactChild = hasNonRootReactChild(container);
 
 
+    // 目前为false
     var shouldReuseMarkup =
       containerHasReactMarkup &&
       !prevComponent &&
@@ -488,6 +503,10 @@ var ReactMount = {
    * @param {?function} callback function triggered on completion
    * @return {ReactComponent} Component instance rendered in `container`.
    */
+
+  // nextElement即virtual DOM
+  // container 具体容器，将由virtualDOM生成的真实dom映射的位置
+  // callback 渲染成功后的回调
   render: function(nextElement, container, callback) {
     return ReactMount._renderSubtreeIntoContainer(
       null,

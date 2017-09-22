@@ -121,6 +121,7 @@ function getClosestInstanceFromNode(node) {
 
   // Walk up the tree until we find an ancestor whose instance we have cached.
   var parents = [];
+  //
   while (!node[internalInstanceKey]) {
     parents.push(node);
     if (node.parentNode) {
@@ -128,6 +129,7 @@ function getClosestInstanceFromNode(node) {
     } else {
       // Top of the tree. This node must not be part of a React tree (or is
       // unmounted, potentially).
+      //
       return null;
     }
   }
@@ -147,6 +149,7 @@ function getClosestInstanceFromNode(node) {
 /**
  * Given a DOM node, return the ReactDOMComponent or ReactDOMTextComponent
  * instance, or null if the node was not rendered by this React.
+ * 通过dom node 返回一个 ReactDOMComponent或者ReactDOMTextComponent的实例，如果dom没有被渲染过则返回null
  */
 function getInstanceFromNode(node) {
   var inst = getClosestInstanceFromNode(node);
