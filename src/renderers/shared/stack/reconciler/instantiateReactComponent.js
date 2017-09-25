@@ -62,11 +62,13 @@ function instantiateReactComponent(node, shouldHaveDebugID) {
   var instance;
 
   if (node === null || node === false) {
+    // 如果是空对象
     instance = ReactEmptyComponent.create(instantiateReactComponent);
   } else if (typeof node === 'object') {
+    // 如果是Node,（包括dom节点以及reactElement）
     var element = node;
 
-    // Special case string values
+    // 原生对象
     if (typeof element.type === 'string') {
       instance = ReactHostComponent.createInternalComponent(element);
     } else if (isInternalComponentType(element.type)) {
@@ -80,13 +82,16 @@ function instantiateReactComponent(node, shouldHaveDebugID) {
         instance.getHostNode = instance.getNativeNode;
       }
     } else {
+      // react组件
       instance = new ReactCompositeComponentWrapper(element);
     }
+    //如果元素本来就是一个string或者number，如 <div>111</div>
   } else if (typeof node === 'string' || typeof node === 'number') {
+    //创建一个
     instance = ReactHostComponent.createInstanceForText(node);
   }
 
-
+  //这两个参数用于dom 和 art diff算法
   // These two fields are used by the DOM and ART diffing algorithms
   // respectively. Instead of using expandos on components, we should be
   // storing the state needed by the diffing algorithms elsewhere.

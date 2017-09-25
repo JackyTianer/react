@@ -370,6 +370,7 @@ var ReactMount = {
     // _renderValidatedComponent) assume that calls to render aren't nested;
     // verify that that's the case.
     ReactBrowserEventEmitter.ensureScrollValueMonitoring();
+    //实例化React Component
     var componentInstance = instantiateReactComponent(nextElement, false);
 
     // The initial render is synchronous but any updates that happen during

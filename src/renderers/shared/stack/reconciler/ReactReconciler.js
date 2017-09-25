@@ -44,15 +44,6 @@ var ReactReconciler = {
     context,
     parentDebugID, // 0 in production and for roots
   ) {
-    if (__DEV__) {
-      if (internalInstance._debugID !== 0) {
-        ReactInstrumentation.debugTool.onBeforeMountComponent(
-          internalInstance._debugID,
-          internalInstance._currentElement,
-          parentDebugID,
-        );
-      }
-    }
     var markup = internalInstance.mountComponent(
       transaction,
       hostParent,
@@ -65,13 +56,6 @@ var ReactReconciler = {
       internalInstance._currentElement.ref != null
     ) {
       transaction.getReactMountReady().enqueue(attachRefs, internalInstance);
-    }
-    if (__DEV__) {
-      if (internalInstance._debugID !== 0) {
-        ReactInstrumentation.debugTool.onMountComponent(
-          internalInstance._debugID,
-        );
-      }
     }
     return markup;
   },
