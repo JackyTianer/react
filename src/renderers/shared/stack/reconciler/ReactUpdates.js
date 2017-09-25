@@ -27,11 +27,6 @@ var asapEnqueued = false;
 var batchingStrategy = null;
 
 function ensureInjected() {
-  invariant(
-    ReactUpdates.ReactReconcileTransaction && batchingStrategy,
-    'ReactUpdates: must inject a reconcile transaction class and batching ' +
-      'strategy',
-  );
 }
 
 var NESTED_UPDATES = {
@@ -102,8 +97,9 @@ Object.assign(ReactUpdatesFlushTransaction.prototype, Transaction, {
 
 PooledClass.addPoolingTo(ReactUpdatesFlushTransaction);
 
+//批量更新方法
 function batchedUpdates(callback, a, b, c, d, e) {
-  ensureInjected();
+  ensureInjected(); //不用理会，单纯的打印方法
   return batchingStrategy.batchedUpdates(callback, a, b, c, d, e);
 }
 
@@ -235,37 +231,16 @@ function enqueueUpdate(component) {
  * if no updates are currently being performed.
  */
 function asap(callback, context) {
-  invariant(
-    batchingStrategy.isBatchingUpdates,
-    "ReactUpdates.asap: Can't enqueue an asap callback in a context where" +
-      'updates are not being batched.',
-  );
   asapCallbackQueue.enqueue(callback, context);
   asapEnqueued = true;
 }
 
 var ReactUpdatesInjection = {
   injectReconcileTransaction: function(ReconcileTransaction) {
-    invariant(
-      ReconcileTransaction,
-      'ReactUpdates: must provide a reconcile transaction class',
-    );
     ReactUpdates.ReactReconcileTransaction = ReconcileTransaction;
   },
 
   injectBatchingStrategy: function(_batchingStrategy) {
-    invariant(
-      _batchingStrategy,
-      'ReactUpdates: must provide a batching strategy',
-    );
-    invariant(
-      typeof _batchingStrategy.batchedUpdates === 'function',
-      'ReactUpdates: must provide a batchedUpdates() function',
-    );
-    invariant(
-      typeof _batchingStrategy.isBatchingUpdates === 'boolean',
-      'ReactUpdates: must provide an isBatchingUpdates boolean attribute',
-    );
     batchingStrategy = _batchingStrategy;
   },
 };

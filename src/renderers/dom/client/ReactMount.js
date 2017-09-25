@@ -144,6 +144,7 @@ function mountComponentIntoNode(
  * @param {DOMElement} container DOM element to mount into.
  * @param {boolean} shouldReuseMarkup If true, do not insert markup
  */
+// TODO book mark
 function batchedMountComponentIntoNode(
   componentInstance,
   container,
@@ -374,7 +375,11 @@ var ReactMount = {
     // The initial render is synchronous but any updates that happen during
     // rendering, in componentWillMount or componentDidMount, will be batched
     // according to the current batching strategy.
+    //
+    /* 批量更新方法，具体实现可以见 ReactDefaultBatchingStrategy.js中 batchedUpdate方法，实际就是执行
+     * batchedMountComponentIntoNode方法，将后面的参数传入batchedMountComponentIntoNode中
 
+     */
     ReactUpdates.batchedUpdates(
       batchedMountComponentIntoNode,
       componentInstance,
@@ -478,6 +483,7 @@ var ReactMount = {
       containerHasReactMarkup &&
       !prevComponent &&
       !containerHasNonRootReactChild;
+    //
     var component = ReactMount._renderNewRootComponent(
       nextWrappedElement,
       container,

@@ -367,9 +367,12 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
    * @see http://www.quirksmode.org/dom/events/scroll.html
    */
   ensureScrollValueMonitoring: function() {
+    // 如果第一次
     if (hasEventPageXY === undefined) {
+      //判断是否支持pageX, 具体实现是调用createEvent,然后确定该event里面是否有pageX属性
       hasEventPageXY = ReactBrowserEventEmitter.supportsEventPageXY();
     }
+    //如果不支持pageX,那么监听scroll(正常情况不会执行到这一步，除非不支持pageX)
     if (!hasEventPageXY && !isMonitoringScrollValue) {
       var refresh = ViewportMetrics.refreshScrollValues;
       ReactBrowserEventEmitter.ReactEventListener.monitorScrollValue(refresh);
