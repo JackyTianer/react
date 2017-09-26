@@ -126,6 +126,7 @@ var nextMountID = 1;
  * @lends {ReactCompositeComponent.prototype}
  */
 var ReactCompositeComponent = {
+  // TODO book mark1
   /**
    * Base constructor for all composite component.
    *

@@ -100,17 +100,15 @@ function defineRefPropWarningGetter(props, displayName) {
  */
 var ReactElement = function(type, key, ref, self, source, owner, props) {
   var element = {
-    // This tag allow us to uniquely identify this as a React Element
+    // 标明该元素是一个ReactElement
     $$typeof: REACT_ELEMENT_TYPE,
 
-    // Built-in properties that belong on the element
     type: type,
     key: key,
     ref: ref,
     props: props,
 
-    // Record the component responsible for creating this element.
-    _owner: owner,
+    _owner: owner, //createElement调用时，为null
   };
 
 
@@ -161,8 +159,6 @@ ReactElement.createElement = function(type, config, children) {
     }
   }
 
-  // Children can be more than one argument, and those are transferred onto
-  // the newly allocated props object.
   //设置props的children属性，children可能是一个对象/数组
   var childrenLength = arguments.length - 2;
   if (childrenLength === 1) {
@@ -175,9 +171,8 @@ ReactElement.createElement = function(type, config, children) {
     props.children = childArray;
   }
 
-  // Resolve default props
   /**
-   *  设置defaultPorps，在这里如果type是ReactElement的话，则将defaultProps中属性填入props中，由上面代码知道
+   *  设置props，在这里如果type是ReactElement的话，则将defaultProps中属性填入props中，由上面代码知道
    *  config对应着标签中的属性，也会将除了key ref __self __source的属性放入props中，如果有某个属性同时存在与config以及
    *  defaultProps中，那么会用config中的属性（也就是标签上的属性）
    */
@@ -189,7 +184,7 @@ ReactElement.createElement = function(type, config, children) {
       }
     }
   }
-  //这时候返回virtual DOM
+  //这时候返回reactElement
   return ReactElement(
     type,
     key,

@@ -144,7 +144,7 @@ function mountComponentIntoNode(
  * @param {DOMElement} container DOM element to mount into.
  * @param {boolean} shouldReuseMarkup If true, do not insert markup
  */
-// TODO book mark
+// TODO book mark1
 function batchedMountComponentIntoNode(
   componentInstance,
   container,
@@ -511,7 +511,7 @@ var ReactMount = {
    * @return {ReactComponent} Component instance rendered in `container`.
    */
 
-  // nextElement即virtual DOM
+  // nextElement即React Element
   // container 具体容器，将由virtualDOM生成的真实dom映射的位置
   // callback 渲染成功后的回调
   render: function(nextElement, container, callback) {

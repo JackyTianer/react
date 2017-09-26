@@ -756,15 +756,11 @@ function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
    * @public
    */
   function createClass(spec) {
-    // To keep our warnings more understandable, we'll use a little hack here to
-    // ensure that Constructor.name !== 'Constructor'. This makes sure we don't
-    // unnecessarily identify a class without displayName as 'Constructor'.
     var Constructor = identity(function(props, context, updater) {
       // This constructor gets overridden by mocks. The argument is used
       // by mocks to assert on what gets mounted.
 
 
-      // Wire up auto-binding
       if (this.__reactAutoBindPairs.length) {
         bindAutoBindMethods(this);
       }
@@ -782,6 +778,7 @@ function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
       var initialState = this.getInitialState ? this.getInitialState() : null;
       this.state = initialState;
     });
+    // 继承ReactClassComponent
     Constructor.prototype = new ReactClassComponent();
     Constructor.prototype.constructor = Constructor;
     Constructor.prototype.__reactAutoBindPairs = [];
@@ -792,12 +789,13 @@ function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
     mixSpecIntoComponent(Constructor, spec);
     mixSpecIntoComponent(Constructor, IsMountedPostMixin);
 
-    // Initialize the defaultProps property after all mixins have been merged.
+    //如果class中定义了getDefaultProps方法。调用getDefaultProps获取默认的props
     if (Constructor.getDefaultProps) {
       Constructor.defaultProps = Constructor.getDefaultProps();
     }
 
-    // Reduce time spent doing lookups by setting these on the prototype.
+    // 对外暴露的方法，如render,shouldComponentUpdate等，如果在组件中没有实现，则返回null
+    // 暴露出来的所有方法可以在factory中变量ReactClassInterface看到
     for (var methodName in ReactClassInterface) {
       if (!Constructor.prototype[methodName]) {
         Constructor.prototype[methodName] = null;
