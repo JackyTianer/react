@@ -104,16 +104,9 @@ function mountComponentIntoNode(
   shouldReuseMarkup,
   context,
 ) {
-  var markerName;
-  if (ReactFeatureFlags.logTopLevelRenders) {
-    var wrappedElement = wrapperInstance._currentElement.props.child;
-    var type = wrappedElement.type;
-    markerName =
-      'React mount: ' +
-      (typeof type === 'string' ? type : type.displayName || type.name);
-    console.time(markerName);
-  }
-
+  /*调用刚才ReactComponent instance中mountComponent方法，将React组件解析成对应的html（对应不同ReactComponent instance）mountComponent也是不同的
+   <div>hello react</div>, 对应的是ReactDOMTextComponent，最终解析成的HTML为<div data-reactroot="x.x.x">hello react</div>
+   */
   var markup = ReactReconciler.mountComponent(
     wrapperInstance,
     transaction,
@@ -123,11 +116,10 @@ function mountComponentIntoNode(
     0 /* parentDebugID */,
   );
 
-  if (markerName) {
-    console.timeEnd(markerName);
-  }
-
   wrapperInstance._renderedComponent._topLevelWrapper = wrapperInstance;
+  /**
+   * 将解析出来的html插入到dom中
+   */
   ReactMount._mountImageIntoNode(
     markup,
     container,
@@ -355,10 +347,10 @@ var ReactMount = {
   /**
    * Render a new component into the DOM. Hooked by hooks!
    *
-   * @param {ReactElement} nextElement element to render
-   * @param {DOMElement} container container to render into
-   * @param {boolean} shouldReuseMarkup if we should skip the markup insertion
-   * @return {ReactComponent} nextComponent
+   * @param {ReactElement} nextElement 即将渲染的组件
+   * @param {DOMElement} container 容器元素
+   * @param {boolean} shouldReuseMarkup 是否需要重新标记元素
+   * @return {ReactComponent} nextComponent 返回一个ReactComponent
    */
   _renderNewRootComponent: function(
     nextElement,
@@ -366,17 +358,43 @@ var ReactMount = {
     shouldReuseMarkup,
     context,
   ) {
-    // Various parts of our code (such as ReactCompositeComponent's
-    // _renderValidatedComponent) assume that calls to render aren't nested;
-    // verify that that's the case.
+    //主要和滚动条有关，目前不需要太关心
     ReactBrowserEventEmitter.ensureScrollValueMonitoring();
-    //实例化React Component
+    //初始化React Component,简单来说会返回一个类似于封装过后的ReactCompont对象，其中包含了MountComponent等方法，以及将nextElement放入_currentElement之中
     var componentInstance = instantiateReactComponent(nextElement, false);
+    /*
+     上文instantiateReactComponent
+     function instantiateReactComponent(node, shouldHaveDebugID) {
+     var instance;
 
-    // The initial render is synchronous but any updates that happen during
-    // rendering, in componentWillMount or componentDidMount, will be batched
-    // according to the current batching strategy.
-    //
+     if (node === null || node === false) {
+     // 如果是空对象
+     instance = ReactEmptyComponent.create(instantiateReactComponent);
+     } else if (typeof node === 'object') {
+     // 如果是Node,（包括dom节点以及reactElement）
+     var element = node;
+
+     // 原生对象
+     if (typeof element.type === 'string') {
+     instance = ReactHostComponent.createInternalComponent(element);
+     } else {
+     // react组件
+     instance = new ReactCompositeComponentWrapper(element);
+     }
+     //如果元素本来就是一个string或者number，如 <div>111</div>中的111
+     } else if (typeof node === 'string' || typeof node === 'number') {
+     //创建一个
+     instance = ReactHostComponent.createInstanceForText(node);
+     }
+
+     //这两个参数用于dom 和 art diff算法
+     instance._mountIndex = 0;
+     instance._mountImage = null;
+     return instance;
+     }
+     */
+
+
     /* 批量更新方法，具体实现可以见 ReactDefaultBatchingStrategy.js中 batchedUpdate方法，实际就是执行
      * batchedMountComponentIntoNode方法，将后面的参数传入batchedMountComponentIntoNode中
 
@@ -402,11 +420,11 @@ var ReactMount = {
    * perform an update on it and only mutate the DOM as necessary to reflect the
    * latest React component.
    *
-   * @param {ReactComponent} parentComponent The conceptual parent of this render tree.
-   * @param {ReactElement} nextElement Component element to render.
-   * @param {DOMElement} container DOM element to render into.
-   * @param {?function} callback function triggered on completion
-   * @return {ReactComponent} Component instance rendered in `container`.
+   * @param {ReactComponent} parentComponent 父组件，对于调用ReactDOM.render时，传入为true
+   * @param {ReactElement} nextElement 插入到DOM中的React元素
+   * @param {DOMElement} container 插入的DOM容器元素.
+   * @param {?function} callback 当成功后触发的回调函数。
+   * @return {ReactComponent} 返回ReactComponent实例
    */
   renderSubtreeIntoContainer: function(
     parentComponent,
@@ -432,13 +450,26 @@ var ReactMount = {
     //判断callback是否为函数;
     ReactUpdateQueue.validateCallback(callback, 'ReactDOM.render');
 
-    //通过TopLevelWrapper创建一个容器节点，并且设置其this.props.child = render传入的ReactElement
+    //通过TopLevelWrapper创建一个ReactElement节点，并且设置其this.props.child = render传入的ReactElement
+    /** TopLevelWrapper代码
+     var topLevelRootCounter = 1;z
+     var TopLevelWrapper = function() {
+      this.rootID = topLevelRootCounter++;
+    };
+     TopLevelWrapper.prototype.isReactComponent = {};
+     TopLevelWrapper.prototype.render = function() {
+      return this.props.child;
+    };
+     TopLevelWrapper.isReactTopLevelWrapper = true;
+     */
+      // 可以看出TopLevelWrapper代码就是一个简单的ReactComponent，类似于 extend React.Component, 并重写了方法render
+
     var nextWrappedElement = React.createElement(TopLevelWrapper, {
       child: nextElement,
     });
 
     var nextContext;
-    // 如果存在父组件，即不是顶级组件的情况下
+    // 如果存在父组件，即不是顶级组件的情况下（在ReactDOM.render时，parentComponent为null）
     if (parentComponent) {
       var parentInst = ReactInstanceMap.get(parentComponent);
       nextContext = parentInst._processChildContext(parentInst._context);
@@ -447,10 +478,11 @@ var ReactMount = {
     }
     // 这时候preComponent = null;
     var prevComponent = getTopLevelWrapperInContainer(container);
-
     if (prevComponent) {
+      //
       var prevWrappedElement = prevComponent._currentElement;
       var prevElement = prevWrappedElement.props.child;
+      // diff 简单概括就是如果渲染的节点和原节点type和key（所以像listview可以通过设置key来进行优化）都不变的时候，直接更新就好，不用在去重新渲染一遍
       if (shouldUpdateReactComponent(prevElement, nextElement)) {
         var publicInst = prevComponent._renderedComponent.getPublicInstance();
         var updatedCallback =
@@ -467,15 +499,17 @@ var ReactMount = {
         );
         return publicInst;
       } else {
+        //否则的话卸载掉该容器的组件
         ReactMount.unmountComponentAtNode(container);
       }
     }
 
+    // 获取container的跟元素
     var reactRootElement = getReactRootElementInContainer(container);
     // 确定container是否被markup，即添加了data-reactid,第一次渲染肯定是false
     var containerHasReactMarkup =
       reactRootElement && !!internalGetID(reactRootElement);
-    // 目前为false
+    // 目前为false，因为ReactDOM.render调用时还没有实例化任何组件
     var containerHasNonRootReactChild = hasNonRootReactChild(container);
 
 
@@ -484,7 +518,7 @@ var ReactMount = {
       containerHasReactMarkup &&
       !prevComponent &&
       !containerHasNonRootReactChild;
-    //
+    // 关键代码，渲染，插入都在这里面
     var component = ReactMount._renderNewRootComponent(
       nextWrappedElement,
       container,
@@ -589,26 +623,16 @@ var ReactMount = {
         );
         rootElement.removeAttribute(ReactMarkupChecksum.CHECKSUM_ATTR_NAME);
 
-        var rootMarkup = rootElement.outerHTML;
         rootElement.setAttribute(
           ReactMarkupChecksum.CHECKSUM_ATTR_NAME,
           checksum,
         );
-
-        var normalizedMarkup = markup;
-
-        var diffIndex = firstDifferenceIndex(normalizedMarkup, rootMarkup);
-        var difference =
-          ' (client) ' +
-          normalizedMarkup.substring(diffIndex - 20, diffIndex + 20) +
-          '\n (server) ' +
-          rootMarkup.substring(diffIndex - 20, diffIndex + 20);
-
-
       }
     }
 
+    //ReactDOM.render调用的时候该值为true
     if (transaction.useCreateElement) {
+      //移除container中的节点
       while (container.lastChild) {
         container.removeChild(container.lastChild);
       }
@@ -617,7 +641,6 @@ var ReactMount = {
       setInnerHTML(container, markup);
       ReactDOMComponentTree.precacheNode(instance, container.firstChild);
     }
-
   },
 };
 

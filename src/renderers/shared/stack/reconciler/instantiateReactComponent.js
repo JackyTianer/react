@@ -15,9 +15,6 @@ var ReactCompositeComponent = require('ReactCompositeComponent');
 var ReactEmptyComponent = require('ReactEmptyComponent');
 var ReactHostComponent = require('ReactHostComponent');
 
-var getNextDebugID = require('getNextDebugID');
-var invariant = require('invariant');
-var warning = require('warning');
 
 // To avoid a cyclic dependency, we create the final class in this module
 var ReactCompositeComponentWrapper = function(element) {
@@ -87,7 +84,6 @@ function instantiateReactComponent(node, shouldHaveDebugID) {
     }
     //如果元素本来就是一个string或者number，如 <div>111</div>
   } else if (typeof node === 'string' || typeof node === 'number') {
-    //创建一个
     instance = ReactHostComponent.createInstanceForText(node);
   }
 
@@ -97,20 +93,6 @@ function instantiateReactComponent(node, shouldHaveDebugID) {
   // storing the state needed by the diffing algorithms elsewhere.
   instance._mountIndex = 0;
   instance._mountImage = null;
-
-  if (__DEV__) {
-    instance._debugID = shouldHaveDebugID ? getNextDebugID() : 0;
-  }
-
-  // Internal instances should fully constructed at this point, so they should
-  // not get any new fields added to them at this point.
-  if (__DEV__) {
-    // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/preventExtensions
-    if (Object.preventExtensions) {
-      Object.preventExtensions(instance);
-    }
-  }
-
   return instance;
 }
 
