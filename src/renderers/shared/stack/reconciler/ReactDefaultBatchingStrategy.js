@@ -34,6 +34,7 @@ function ReactDefaultBatchingStrategyTransaction() {
   this.reinitializeTransaction();
 }
 
+// ReactDefaultBatchingStrategyTransaction.prototype添加Transaction对象的方法，如reinitializeTransaction，同时用新的函数覆盖getTransactionWrappers
 Object.assign(ReactDefaultBatchingStrategyTransaction.prototype, Transaction, {
   getTransactionWrappers: function() {
     return TRANSACTION_WRAPPERS;
@@ -58,7 +59,7 @@ var ReactDefaultBatchingStrategy = {
     if (alreadyBatchingUpdates) {
       return callback(a, b, c, d, e);
     } else {
-      return transaction.perform(callback, null, a, b, c, d, e);
+      return transaction.perform(callback, null, a, b, c, d, e);//重点代码
     }
   },
 };

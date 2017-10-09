@@ -509,7 +509,7 @@ ReactDOMComponent.Mixin = {
     this._hostContainerInfo = hostContainerInfo;
 
     var props = this._currentElement.props;
-
+    //针对不同的element，进行不同的处理，在构造函数中this._tag=element.tag.toLowCase()
     switch (this._tag) {
       case 'audio':
       case 'form':
@@ -575,26 +575,8 @@ ReactDOMComponent.Mixin = {
     }
     this._namespaceURI = namespaceURI;
 
-    if (__DEV__) {
-      var parentInfo;
-      if (hostParent != null) {
-        parentInfo = hostParent._ancestorInfo;
-      } else if (hostContainerInfo._tag) {
-        parentInfo = hostContainerInfo._ancestorInfo;
-      }
-      if (parentInfo) {
-        // parentInfo should always be present except for the top-level
-        // component when server rendering
-        validateDOMNesting(this._tag, null, this, parentInfo);
-      }
-      this._ancestorInfo = validateDOMNesting.updatedAncestorInfo(
-        parentInfo,
-        this._tag,
-        this,
-      );
-    }
-
     var mountImage;
+    // 调用render时，useCreateElement为true
     if (transaction.useCreateElement) {
       var ownerDocument = hostContainerInfo._ownerDocument;
       var el;
@@ -627,6 +609,7 @@ ReactDOMComponent.Mixin = {
       }
       this._updateDOMProperties(null, props, transaction);
       var lazyTree = DOMLazyTree(el);
+      // 准备实例化子组件
       this._createInitialChildren(transaction, props, context, lazyTree);
       mountImage = lazyTree;
     } else {
@@ -834,9 +817,6 @@ ReactDOMComponent.Mixin = {
         // show within the textarea until it has been focused and blurred again.
         // https://github.com/facebook/react/issues/6731#issuecomment-254874553
         if (contentToUse !== '') {
-          if (__DEV__) {
-            setAndValidateContentChildDev.call(this, contentToUse);
-          }
           DOMLazyTree.queueText(lazyTree, contentToUse);
         }
       } else if (childrenToUse != null) {

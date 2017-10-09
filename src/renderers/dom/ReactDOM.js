@@ -25,6 +25,7 @@ var getHostComponentFromComposite = require('getHostComponentFromComposite');
 var renderSubtreeIntoContainer = require('renderSubtreeIntoContainer');
 var warning = require('warning');
 
+//注入事件，环境变量，各种参数值
 ReactDefaultInjection.inject();
 
 var ReactDOM = {
