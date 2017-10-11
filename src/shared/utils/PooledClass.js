@@ -67,10 +67,6 @@ var fourArgumentPooler = function(a1, a2, a3, a4) {
 
 var standardReleaser = function(instance) {
   var Klass = this;
-  invariant(
-    instance instanceof Klass,
-    'Trying to release an instance into a pool of a different type.',
-  );
   instance.destructor();
   if (Klass.instancePool.length < Klass.poolSize) {
     Klass.instancePool.push(instance);

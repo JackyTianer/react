@@ -489,16 +489,6 @@ var ReactCompositeComponent = {
    */
   _processContext: function(context) {
     var maskedContext = this._maskContext(context);
-    if (__DEV__) {
-      var Component = this._currentElement.type;
-      if (Component.contextTypes) {
-        this._checkContextTypes(
-          Component.contextTypes,
-          maskedContext,
-          'context',
-        );
-      }
-    }
     return maskedContext;
   },
 
@@ -608,6 +598,7 @@ var ReactCompositeComponent = {
         this._context,
       );
     } else if (this._pendingStateQueue !== null || this._pendingForceUpdate) {
+      //注意，调用了this.updateComponent方法，但是element以及content都是component自己的即_currentElement，_context
       this.updateComponent(
         transaction,
         this._currentElement,
@@ -643,12 +634,6 @@ var ReactCompositeComponent = {
     nextUnmaskedContext,
   ) {
     var inst = this._instance;
-    invariant(
-      inst != null,
-      'Attempted to update component `%s` that has already been unmounted ' +
-        '(or failed to mount).',
-      this.getName() || 'ReactCompositeComponent',
-    );
 
     var willReceive = false;
     var nextContext;
@@ -669,39 +654,22 @@ var ReactCompositeComponent = {
       willReceive = true;
     }
 
-    // An update here will schedule an update but immediately set
-    // _pendingStateQueue which will ensure that any state updates gets
-    // immediately reconciled instead of waiting for the next batch.
+    // 执行生命周期componentWillReceiveProps
     if (willReceive && inst.componentWillReceiveProps) {
-      if (__DEV__) {
-        measureLifeCyclePerf(
-          () => inst.componentWillReceiveProps(nextProps, nextContext),
-          this._debugID,
-          'componentWillReceiveProps',
-        );
-      } else {
         inst.componentWillReceiveProps(nextProps, nextContext);
-      }
     }
 
     var nextState = this._processPendingState(nextProps, nextContext);
     var shouldUpdate = true;
 
     if (!this._pendingForceUpdate) {
+      //生命周期shouldComponentUpdate
       if (inst.shouldComponentUpdate) {
-        if (__DEV__) {
-          shouldUpdate = measureLifeCyclePerf(
-            () => inst.shouldComponentUpdate(nextProps, nextState, nextContext),
-            this._debugID,
-            'shouldComponentUpdate',
-          );
-        } else {
           shouldUpdate = inst.shouldComponentUpdate(
             nextProps,
             nextState,
             nextContext,
           );
-        }
       } else {
         if (this._compositeType === CompositeTypes.PureClass) {
           shouldUpdate =
@@ -711,14 +679,6 @@ var ReactCompositeComponent = {
       }
     }
 
-    if (__DEV__) {
-      warning(
-        shouldUpdate !== undefined,
-        '%s.shouldComponentUpdate(): Returned undefined instead of a ' +
-          'boolean value. Make sure to return true or false.',
-        this.getName() || 'ReactCompositeComponent',
-      );
-    }
 
     this._updateBatchNumber = null;
     if (shouldUpdate) {
@@ -759,6 +719,7 @@ var ReactCompositeComponent = {
     }
 
     var nextState = Object.assign({}, replace ? queue[0] : inst.state);
+    // 将该组件状态队列里所有的 state 更新统一处理合并
     for (var i = replace ? 1 : 0; i < queue.length; i++) {
       var partial = queue[i];
       Object.assign(
@@ -804,16 +765,9 @@ var ReactCompositeComponent = {
       prevContext = inst.context;
     }
 
+    //生命周期componentWillUpdate
     if (inst.componentWillUpdate) {
-      if (__DEV__) {
-        measureLifeCyclePerf(
-          () => inst.componentWillUpdate(nextProps, nextState, nextContext),
-          this._debugID,
-          'componentWillUpdate',
-        );
-      } else {
         inst.componentWillUpdate(nextProps, nextState, nextContext);
-      }
     }
 
     this._currentElement = nextElement;
@@ -825,20 +779,6 @@ var ReactCompositeComponent = {
     this._updateRenderedComponent(transaction, unmaskedContext);
 
     if (hasComponentDidUpdate) {
-      if (__DEV__) {
-        transaction.getReactMountReady().enqueue(() => {
-          measureLifeCyclePerf(
-            inst.componentDidUpdate.bind(
-              inst,
-              prevProps,
-              prevState,
-              prevContext,
-            ),
-            this._debugID,
-            'componentDidUpdate',
-          );
-        });
-      } else {
         transaction
           .getReactMountReady()
           .enqueue(
@@ -850,7 +790,6 @@ var ReactCompositeComponent = {
             ),
             inst,
           );
-      }
     }
   },
 
@@ -866,9 +805,6 @@ var ReactCompositeComponent = {
     var nextRenderedElement = this._renderValidatedComponent();
 
     var debugID = 0;
-    if (__DEV__) {
-      debugID = this._debugID;
-    }
 
     if (shouldUpdateReactComponent(prevRenderedElement, nextRenderedElement)) {
       ReactReconciler.receiveComponent(
@@ -897,13 +833,6 @@ var ReactCompositeComponent = {
         this._processChildContext(context),
         debugID,
       );
-
-      if (__DEV__) {
-        if (debugID !== 0) {
-          var childDebugIDs = child._debugID !== 0 ? [child._debugID] : [];
-          ReactInstrumentation.debugTool.onSetChildren(debugID, childDebugIDs);
-        }
-      }
 
       this._replaceNodeWithMarkup(
         oldHostNode,
