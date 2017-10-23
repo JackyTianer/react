@@ -23,8 +23,11 @@ var invariant = require('invariant');
  */
 var oneArgumentPooler = function(copyFieldsFrom) {
   var Klass = this;
+  // 如果缓存池长度不为0，即存在实体对象,
   if (Klass.instancePool.length) {
+    //那么直接从缓存池返回对应的对象
     var instance = Klass.instancePool.pop();
+    // 同时调用一次该类构造函数，对该instance进行初始化
     Klass.call(instance, copyFieldsFrom);
     return instance;
   } else {
@@ -50,6 +53,7 @@ var threeArgumentPooler = function(a1, a2, a3) {
     Klass.call(instance, a1, a2, a3);
     return instance;
   } else {
+    // 如果没有缓存，则new一个出来
     return new Klass(a1, a2, a3);
   }
 };
@@ -78,15 +82,7 @@ var DEFAULT_POOLER = oneArgumentPooler;
 
 type Pooler = any;
 
-/**
- * Augments `CopyConstructor` to be a poolable class, augmenting only the class
- * itself (statically) not adding any prototypical fields. Any CopyConstructor
- * you give this may have a `poolSize` property, and will look for a
- * prototypical `destructor` on instances.
- *
- * @param {Function} CopyConstructor Constructor that can be used to reset.
- * @param {Function} pooler Customizable pooler.
- */
+// 重点代码
 var addPoolingTo = function<T>(
   CopyConstructor: Class<T>,
   pooler: Pooler,
@@ -97,6 +93,7 @@ var addPoolingTo = function<T>(
   // Casting as any so that flow ignores the actual implementation and trusts
   // it to match the type we declared
   var NewKlass = (CopyConstructor: any);
+  // 该类的具体实例缓存池
   NewKlass.instancePool = [];
   NewKlass.getPooled = pooler || DEFAULT_POOLER;
   if (!NewKlass.poolSize) {

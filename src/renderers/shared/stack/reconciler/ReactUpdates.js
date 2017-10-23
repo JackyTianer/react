@@ -57,20 +57,26 @@ var UPDATE_QUEUEING = {
 
 var TRANSACTION_WRAPPERS = [NESTED_UPDATES, UPDATE_QUEUEING];
 
+// ReactUpdatesFlushTransaction构造函数
 function ReactUpdatesFlushTransaction() {
+  // 调用reinitializeTransaction，获取初始化
   this.reinitializeTransaction();
   this.dirtyComponentsLength = null;
+  //获取callbackQueue，reconcileTransaction实例；
   this.callbackQueue = CallbackQueue.getPooled();
   this.reconcileTransaction = ReactUpdates.ReactReconcileTransaction.getPooled(
     /* useCreateElement */ true,
   );
 }
 
+// 继承，覆盖相关方法
 Object.assign(ReactUpdatesFlushTransaction.prototype, Transaction, {
+  // 覆盖getTransactionWrappers方法
   getTransactionWrappers: function() {
     return TRANSACTION_WRAPPERS;
   },
 
+  // 覆盖destructor方法，该方法会在放回缓存池中调用
   destructor: function() {
     this.dirtyComponentsLength = null;
     CallbackQueue.release(this.callbackQueue);
@@ -93,6 +99,7 @@ Object.assign(ReactUpdatesFlushTransaction.prototype, Transaction, {
   },
 });
 
+//加入缓存池
 PooledClass.addPoolingTo(ReactUpdatesFlushTransaction);
 
 //批量更新方法
