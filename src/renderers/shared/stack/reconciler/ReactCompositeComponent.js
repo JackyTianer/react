@@ -126,7 +126,6 @@ var nextMountID = 1;
  * @lends {ReactCompositeComponent.prototype}
  */
 var ReactCompositeComponent = {
-  // TODO book mark1
   /**
    * Base constructor for all composite component.
    *
@@ -612,6 +611,7 @@ var ReactCompositeComponent = {
   },
 
   /**
+   * 更新组件
    * Perform an update to a mounted component. The componentWillReceiveProps and
    * shouldComponentUpdate methods are called, then (assuming the update isn't
    * skipped) the remaining update lifecycle methods are called and the DOM

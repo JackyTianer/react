@@ -28,7 +28,9 @@ var invariant = require('invariant');
  * @internal
  */
 class CallbackQueue<T> {
+  // 回调队列
   _callbacks: ?Array<() => void>;
+  //上下文
   _contexts: ?Array<T>;
   _arg: ?mixed;
 
@@ -46,6 +48,7 @@ class CallbackQueue<T> {
    * @internal
    */
   enqueue(callback: () => void, context: T) {
+    //将回调和上下文塞入队列中
     this._callbacks = this._callbacks || [];
     this._callbacks.push(callback);
     this._contexts = this._contexts || [];
@@ -53,8 +56,7 @@ class CallbackQueue<T> {
   }
 
   /**
-   * Invokes all enqueued callbacks and clears the queue. This is invoked after
-   * the DOM representation of a component has been created or updated.
+   * 执行队列中所有回调函数
    *
    * @internal
    */
@@ -63,10 +65,6 @@ class CallbackQueue<T> {
     var contexts = this._contexts;
     var arg = this._arg;
     if (callbacks && contexts) {
-      invariant(
-        callbacks.length === contexts.length,
-        'Mismatched list of contexts in callback queue',
-      );
       this._callbacks = null;
       this._contexts = null;
       for (var i = 0; i < callbacks.length; i++) {
@@ -77,10 +75,18 @@ class CallbackQueue<T> {
     }
   }
 
+  /**
+   * 检查点，返回队列长度
+   * @returns {number}
+   */
   checkpoint() {
     return this._callbacks ? this._callbacks.length : 0;
   }
 
+  /**
+   *
+   * @param len
+   */
   rollback(len: number) {
     if (this._callbacks && this._contexts) {
       this._callbacks.length = len;
@@ -89,7 +95,7 @@ class CallbackQueue<T> {
   }
 
   /**
-   * Resets the internal queue.
+   * 重置队列以及上下文
    *
    * @internal
    */
@@ -99,7 +105,7 @@ class CallbackQueue<T> {
   }
 
   /**
-   * `PooledClass` looks for this.
+   * Pool调用release后会执行
    */
   destructor() {
     this.reset();
