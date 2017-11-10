@@ -192,7 +192,7 @@ var ReactCompositeComponent = {
 
     // Initialize the public class a
     var doConstruct = shouldConstruct(Component);
-    // 本质上就是new 了一个React.createClass(), 即Component组件
+    // 本质上就是new了一个React.createClass(), 即Component组件
     var inst = this._constructComponent(
       doConstruct,
       publicProps,
@@ -245,6 +245,7 @@ var ReactCompositeComponent = {
         context,
       );
     } else {
+      // 在这执行了componentWillMount
       markup = this.performInitialMount(
         renderedElement,  //前面代码中有 renderedElement = inst,即ReactComponent实体
         hostParent,
@@ -400,7 +401,7 @@ var ReactCompositeComponent = {
     }
 
     var inst = this._instance;
-
+    // 是否存在componentWillUnmount方法
     if (inst.componentWillUnmount && !inst._calledComponentWillUnmount) {
       inst._calledComponentWillUnmount = true;
 
@@ -411,43 +412,31 @@ var ReactCompositeComponent = {
           inst.componentWillUnmount.bind(inst),
         );
       } else {
-        if (__DEV__) {
-          measureLifeCyclePerf(
-            () => inst.componentWillUnmount(),
-            this._debugID,
-            'componentWillUnmount',
-          );
-        } else {
+          //执行componentWillUnmount
           inst.componentWillUnmount();
-        }
       }
     }
 
     if (this._renderedComponent) {
+      // 递归调用销毁子组件
       ReactReconciler.unmountComponent(this._renderedComponent, safely);
       this._renderedNodeType = null;
       this._renderedComponent = null;
       this._instance = null;
     }
 
-    // Reset pending fields
-    // Even if this component is scheduled for another update in ReactUpdates,
-    // it would still be ignored because these fields are reset.
     this._pendingStateQueue = null;
     this._pendingReplaceState = false;
     this._pendingForceUpdate = false;
     this._pendingCallbacks = null;
     this._pendingElement = null;
 
-    // These fields do not really need to be reset since this object is no
-    // longer accessible.
+    // 重置内部对象
     this._context = null;
     this._rootNodeID = 0;
     this._topLevelWrapper = null;
 
-    // Delete the reference from the instance to this internal representation
-    // which allow the internals to be properly cleaned up even if the user
-    // leaks a reference to the public instance.
+    //从instance map中去除该对象
     ReactInstanceMap.remove(inst);
 
     // Some existing components rely on inst.props even after they've been
@@ -654,17 +643,19 @@ var ReactCompositeComponent = {
       willReceive = true;
     }
 
-    // 执行生命周期componentWillReceiveProps
+    // 执行生命周期componentWillReceiveProps, 通过上面代码判断willReceive，通过this.setState()执行到此时的时候，当前组件willReceive为true
     if (willReceive && inst.componentWillReceiveProps) {
         inst.componentWillReceiveProps(nextProps, nextContext);
     }
 
+    // 合并state
     var nextState = this._processPendingState(nextProps, nextContext);
     var shouldUpdate = true;
 
     if (!this._pendingForceUpdate) {
       //生命周期shouldComponentUpdate
       if (inst.shouldComponentUpdate) {
+        // 获取是否需要更新
           shouldUpdate = inst.shouldComponentUpdate(
             nextProps,
             nextState,
@@ -684,6 +675,7 @@ var ReactCompositeComponent = {
     if (shouldUpdate) {
       this._pendingForceUpdate = false;
       // Will set `this.props`, `this.state` and `this.context`.
+      // 执行更新，重新渲染
       this._performComponentUpdate(
         nextParentElement,
         nextProps,
@@ -695,6 +687,7 @@ var ReactCompositeComponent = {
     } else {
       // If it's determined that a component should not update, we still want
       // to set props and state but we shortcut the rest of the update.
+      // 不需要重新渲染，但是会把state props context设置为最新值
       this._currentElement = nextParentElement;
       this._context = nextUnmaskedContext;
       inst.props = nextProps;
@@ -754,7 +747,7 @@ var ReactCompositeComponent = {
     unmaskedContext,
   ) {
     var inst = this._instance;
-
+    // 判断是否存在componentDidUpdate方法
     var hasComponentDidUpdate = Boolean(inst.componentDidUpdate);
     var prevProps;
     var prevState;
@@ -802,11 +795,13 @@ var ReactCompositeComponent = {
   _updateRenderedComponent: function(transaction, context) {
     var prevComponentInstance = this._renderedComponent;
     var prevRenderedElement = prevComponentInstance._currentElement;
+    // 获取渲染的ReactElement
     var nextRenderedElement = this._renderValidatedComponent();
 
     var debugID = 0;
-
+    // 判断是否做DOM diff
     if (shouldUpdateReactComponent(prevRenderedElement, nextRenderedElement)) {
+      // 递归updateComponent,更新子组件的Virtual DOM
       ReactReconciler.receiveComponent(
         prevComponentInstance,
         nextRenderedElement,
@@ -814,6 +809,7 @@ var ReactCompositeComponent = {
         this._processChildContext(context),
       );
     } else {
+      // 不做DOM diff,则先卸载掉,然后再加载。也就是先unMountComponent,再mountComponent
       var oldHostNode = ReactReconciler.getHostNode(prevComponentInstance);
       ReactReconciler.unmountComponent(prevComponentInstance, false);
 
@@ -833,7 +829,7 @@ var ReactCompositeComponent = {
         this._processChildContext(context),
         debugID,
       );
-
+      //渲染
       this._replaceNodeWithMarkup(
         oldHostNode,
         nextMarkup,
