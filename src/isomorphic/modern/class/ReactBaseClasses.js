@@ -108,8 +108,9 @@ function ComponentDummy() {}
 ComponentDummy.prototype = ReactComponent.prototype;
 ReactPureComponent.prototype = new ComponentDummy();
 ReactPureComponent.prototype.constructor = ReactPureComponent;
-// Avoid an extra prototype jump for these methods.
 Object.assign(ReactPureComponent.prototype, ReactComponent.prototype);
+
+// 重点代码
 ReactPureComponent.prototype.isPureReactComponent = true;
 
 module.exports = {
