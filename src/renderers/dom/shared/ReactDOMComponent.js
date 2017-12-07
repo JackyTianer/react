@@ -172,55 +172,24 @@ function assertValidProps(component, props) {
         'for more information.',
     );
   }
-  if (__DEV__) {
-    warning(
-      props.innerHTML == null,
-      'Directly setting property `innerHTML` is not permitted. ' +
-        'For more information, lookup documentation on `dangerouslySetInnerHTML`.',
-    );
-    warning(
-      props.suppressContentEditableWarning ||
-        !props.contentEditable ||
-        props.children == null,
-      'A component is `contentEditable` and contains `children` managed by ' +
-        'React. It is now your responsibility to guarantee that none of ' +
-        'those nodes are unexpectedly modified or duplicated. This is ' +
-        'probably not intentional.',
-    );
-    warning(
-      props.onFocusIn == null && props.onFocusOut == null,
-      'React uses onFocus and onBlur instead of onFocusIn and onFocusOut. ' +
-        'All React events are normalized to bubble, so onFocusIn and onFocusOut ' +
-        'are not needed/supported by React.',
-    );
-  }
-  invariant(
-    props.style == null || typeof props.style === 'object',
-    'The `style` prop expects a mapping from style properties to values, ' +
-      "not a string. For example, style={{marginRight: spacing + 'em'}} when " +
-      'using JSX.%s',
-    getDeclarationErrorAddendum(component),
-  );
 }
 
 function enqueuePutListener(inst, registrationName, listener, transaction) {
   if (transaction instanceof ReactServerRenderingTransaction) {
     return;
   }
-  if (__DEV__) {
-    // IE8 has no API for event capturing and the `onScroll` event doesn't
-    // bubble.
-    warning(
-      registrationName !== 'onScroll' || isEventSupported('scroll', true),
-      "This browser doesn't support the `onScroll` event",
-    );
-  }
+  //实体对象中dom节点信息
   var containerInfo = inst._hostContainerInfo;
   var isDocumentFragment =
     containerInfo._node && containerInfo._node.nodeType === DOC_FRAGMENT_TYPE;
+  /**
+   * ownerDocument：该节点的顶层document
+   * [ownerDocument](https://developer.mozilla.org/zh-CN/docs/Web/API/Node/ownerDocument)
+   */
   var doc = isDocumentFragment
     ? containerInfo._node
     : containerInfo._ownerDocument;
+  //注册事件
   listenTo(registrationName, doc);
   transaction.getReactMountReady().enqueue(putListener, {
     inst: inst,
@@ -696,10 +665,6 @@ ReactDOMComponent.Mixin = {
       } else {
         if (propKey === STYLE) {
           if (propValue) {
-            if (__DEV__) {
-              // See `_updateDOMProperties`. style block
-              this._previousStyle = propValue;
-            }
             propValue = this._previousStyleCopy = Object.assign(
               {},
               props.style,
@@ -970,14 +935,6 @@ ReactDOMComponent.Mixin = {
       }
       if (propKey === STYLE) {
         if (nextProp) {
-          if (__DEV__) {
-            checkAndWarnForMutatedStyle(
-              this._previousStyleCopy,
-              this._previousStyle,
-              this,
-            );
-            this._previousStyle = nextProp;
-          }
           nextProp = this._previousStyleCopy = Object.assign({}, nextProp);
         } else {
           this._previousStyleCopy = null;

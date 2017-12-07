@@ -138,26 +138,9 @@ function publishRegistrationName(
   pluginModule: PluginModule<AnyNativeEvent>,
   eventName: string,
 ): void {
-  invariant(
-    !EventPluginRegistry.registrationNameModules[registrationName],
-    'EventPluginHub: More than one plugin attempted to publish the same ' +
-      'registration name, `%s`.',
-    registrationName,
-  );
   EventPluginRegistry.registrationNameModules[registrationName] = pluginModule;
   EventPluginRegistry.registrationNameDependencies[registrationName] =
     pluginModule.eventTypes[eventName].dependencies;
-
-  if (__DEV__) {
-    var lowerCasedName = registrationName.toLowerCase();
-    EventPluginRegistry.possibleRegistrationNames[
-      lowerCasedName
-    ] = registrationName;
-
-    if (registrationName === 'onDoubleClick') {
-      EventPluginRegistry.possibleRegistrationNames.ondblclick = registrationName;
-    }
-  }
 }
 
 /**

@@ -237,6 +237,7 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
    * @param {object} contentDocumentHandle Document which owns the container
    */
   listenTo: function(registrationName, contentDocumentHandle) {
+    // 事件挂载节点，大部分是document
     var mountAt = contentDocumentHandle;
     var isListening = getListeningForDocument(mountAt);
     var dependencies =
@@ -314,6 +315,7 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
           isListening.topBlur = true;
           isListening.topFocus = true;
         } else if (topEventMapping.hasOwnProperty(dependency)) {
+
           ReactBrowserEventEmitter.ReactEventListener.trapBubbledEvent(
             dependency,
             topEventMapping[dependency],
