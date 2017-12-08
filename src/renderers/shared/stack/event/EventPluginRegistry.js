@@ -303,15 +303,6 @@ var EventPluginRegistry = {
       }
     }
 
-    if (__DEV__) {
-      var possibleRegistrationNames =
-        EventPluginRegistry.possibleRegistrationNames;
-      for (var lowerCasedName in possibleRegistrationNames) {
-        if (possibleRegistrationNames.hasOwnProperty(lowerCasedName)) {
-          delete possibleRegistrationNames[lowerCasedName];
-        }
-      }
-    }
   },
 };
 

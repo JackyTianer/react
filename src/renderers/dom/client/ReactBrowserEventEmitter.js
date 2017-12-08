@@ -316,6 +316,7 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
           isListening.topFocus = true;
         } else if (topEventMapping.hasOwnProperty(dependency)) {
 
+          //标准事件
           ReactBrowserEventEmitter.ReactEventListener.trapBubbledEvent(
             dependency,
             topEventMapping[dependency],

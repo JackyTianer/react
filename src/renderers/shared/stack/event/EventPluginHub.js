@@ -133,16 +133,14 @@ var EventPluginHub = {
    * @param {function} listener The callback to store.
    */
   putListener: function(inst, registrationName, listener) {
-    invariant(
-      typeof listener === 'function',
-      'Expected %s listener to be a function, instead got type %s',
-      registrationName,
-      typeof listener,
-    );
 
+    // return '.' + inst._rootNodeID;
     var key = getDictionaryKey(inst);
+    // 将所绑定的事件存入 listenerBank中，
     var bankForRegistrationName =
       listenerBank[registrationName] || (listenerBank[registrationName] = {});
+
+    // 将对应的事件回调放入 bankForRegistrationName中，通过id区分不同组件当时相同的事件，如组件A和B都有click事件，通过id进行区分
     bankForRegistrationName[key] = listener;
 
     var PluginModule =

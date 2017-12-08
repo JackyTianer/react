@@ -122,6 +122,7 @@ var ReactEventListener = {
     return EventListener.listen(
       element,
       handlerBaseName,
+      //事件回调，注意
       ReactEventListener.dispatchEvent.bind(null, topLevelType),
     );
   },
