@@ -82,13 +82,17 @@ function getParentInstance(inst) {
 /**
  * Simulates the traversal of a two-phase, capture/bubble event dispatch.
  */
+
 function traverseTwoPhase(inst, fn, arg) {
+  //这里的fn是EventPropagators中的accumulateDirectionalDispatches方法
   var path = [];
+  // 依次寻找父节点
   while (inst) {
     path.push(inst);
     inst = inst._hostParent;
   }
   var i;
+  //捕获与冒泡
   for (i = path.length; i-- > 0; ) {
     fn(path[i], 'captured', arg);
   }

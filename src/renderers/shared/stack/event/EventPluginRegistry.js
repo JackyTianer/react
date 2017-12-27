@@ -48,21 +48,9 @@ function recomputePluginOrdering(): void {
   for (var pluginName in namesToPlugins) {
     var pluginModule = namesToPlugins[pluginName];
     var pluginIndex = eventPluginOrder.indexOf(pluginName);
-    invariant(
-      pluginIndex > -1,
-      'EventPluginRegistry: Cannot inject event plugins that do not exist in ' +
-        'the plugin ordering, `%s`.',
-      pluginName,
-    );
     if (EventPluginRegistry.plugins[pluginIndex]) {
       continue;
     }
-    invariant(
-      pluginModule.extractEvents,
-      'EventPluginRegistry: Event plugins must implement an `extractEvents` ' +
-        'method, but `%s` does not.',
-      pluginName,
-    );
     EventPluginRegistry.plugins[pluginIndex] = pluginModule;
     var publishedEvents = pluginModule.eventTypes;
     for (var eventName in publishedEvents) {
@@ -223,12 +211,6 @@ var EventPluginRegistry = {
         !namesToPlugins.hasOwnProperty(pluginName) ||
         namesToPlugins[pluginName] !== pluginModule
       ) {
-        invariant(
-          !namesToPlugins[pluginName],
-          'EventPluginRegistry: Cannot inject two different event plugins ' +
-            'using the same name, `%s`.',
-          pluginName,
-        );
         namesToPlugins[pluginName] = pluginModule;
         isOrderingDirty = true;
       }

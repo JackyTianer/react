@@ -29,25 +29,9 @@ var TreeTraversal;
 var injection = {
   injectComponentTree: function(Injected) {
     ComponentTree = Injected;
-    if (__DEV__) {
-      warning(
-        Injected &&
-          Injected.getNodeFromInstance &&
-          Injected.getInstanceFromNode,
-        'EventPluginUtils.injection.injectComponentTree(...): Injected ' +
-          'module is missing getNodeFromInstance or getInstanceFromNode.',
-      );
-    }
   },
   injectTreeTraversal: function(Injected) {
     TreeTraversal = Injected;
-    if (__DEV__) {
-      warning(
-        Injected && Injected.isAncestor && Injected.getLowestCommonAncestor,
-        'EventPluginUtils.injection.injectTreeTraversal(...): Injected ' +
-          'module is missing isAncestor or getLowestCommonAncestor.',
-      );
-    }
   },
 };
 
@@ -67,27 +51,6 @@ function isStartish(topLevelType) {
 }
 
 var validateEventDispatches;
-if (__DEV__) {
-  validateEventDispatches = function(event) {
-    var dispatchListeners = event._dispatchListeners;
-    var dispatchInstances = event._dispatchInstances;
-
-    var listenersIsArr = Array.isArray(dispatchListeners);
-    var listenersLen = listenersIsArr
-      ? dispatchListeners.length
-      : dispatchListeners ? 1 : 0;
-
-    var instancesIsArr = Array.isArray(dispatchInstances);
-    var instancesLen = instancesIsArr
-      ? dispatchInstances.length
-      : dispatchInstances ? 1 : 0;
-
-    warning(
-      instancesIsArr === listenersIsArr && instancesLen === listenersLen,
-      'EventPluginUtils: Invalid `event`.',
-    );
-  };
-}
 
 /**
  * Dispatch the event to the listener.
@@ -98,10 +61,14 @@ if (__DEV__) {
  */
 function executeDispatch(event, simulated, listener, inst) {
   var type = event.type || 'unknown-event';
+  // 获取具体dom
   event.currentTarget = EventPluginUtils.getNodeFromInstance(inst);
+
   if (simulated) {
+    // 在15.6版本invokeGuardedCallbackWithCatch和下面的invokeGuardedCallback代码是相同的，具体的代码就是执行listener，并将event作为参数
     ReactErrorUtils.invokeGuardedCallbackWithCatch(type, listener, event);
   } else {
+    //
     ReactErrorUtils.invokeGuardedCallback(type, listener, event);
   }
   event.currentTarget = null;
@@ -111,11 +78,9 @@ function executeDispatch(event, simulated, listener, inst) {
  * Standard/simple iteration through an event's collected dispatches.
  */
 function executeDispatchesInOrder(event, simulated) {
+  // 合成事件中的对象以及事件回调
   var dispatchListeners = event._dispatchListeners;
   var dispatchInstances = event._dispatchInstances;
-  if (__DEV__) {
-    validateEventDispatches(event);
-  }
   if (Array.isArray(dispatchListeners)) {
     for (var i = 0; i < dispatchListeners.length; i++) {
       if (event.isPropagationStopped()) {

@@ -49,6 +49,10 @@ var executeDispatchesAndRelease = function(event, simulated) {
 var executeDispatchesAndReleaseSimulated = function(e) {
   return executeDispatchesAndRelease(e, true);
 };
+/**
+ *
+ * @param e 事件队列中的某个
+ */
 var executeDispatchesAndReleaseTopLevel = function(e) {
   return executeDispatchesAndRelease(e, false);
 };
@@ -233,9 +237,10 @@ var EventPluginHub = {
     nativeEventTarget,
   ) {
     var events;
+    // 获取事件插件，
     var plugins = EventPluginRegistry.plugins;
     for (var i = 0; i < plugins.length; i++) {
-      // Not every plugin in the ordering may be loaded at runtime.
+      // 通过各个插件返回事件数组，最后将事件数组合并返回
       var possiblePlugin = plugins[i];
       if (possiblePlugin) {
         var extractedEvents = possiblePlugin.extractEvents(
@@ -245,6 +250,10 @@ var EventPluginHub = {
           nativeEventTarget,
         );
         if (extractedEvents) {
+          //该方法比较简单，就是，简单来说就是数组合并，
+          // 如果param1和2都是数组，那么调用concat合并
+          // 如果其中有一个是对象，将其按顺序插入新的数组之中，
+          // 最后返回的一定是数组
           events = accumulateInto(events, extractedEvents);
         }
       }
@@ -271,8 +280,7 @@ var EventPluginHub = {
    * @internal
    */
   processEventQueue: function(simulated) {
-    // Set `eventQueue` to null before processing it so that we can tell if more
-    // events get enqueued while processing.
+    // 获取已合成事件队列
     var processingEventQueue = eventQueue;
     eventQueue = null;
     if (simulated) {
@@ -281,16 +289,12 @@ var EventPluginHub = {
         executeDispatchesAndReleaseSimulated,
       );
     } else {
+      // 让所有事件执行executeDispatchesAndReleaseTopLevel方法
       forEachAccumulated(
         processingEventQueue,
         executeDispatchesAndReleaseTopLevel,
       );
     }
-    invariant(
-      !eventQueue,
-      'processEventQueue(): Additional events were enqueued while processing ' +
-        'an event queue. Support for this has not yet been implemented.',
-    );
     // This would be a good time to rethrow if any of the event handlers threw.
     ReactErrorUtils.rethrowCaughtError();
   },

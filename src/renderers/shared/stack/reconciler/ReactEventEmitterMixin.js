@@ -14,7 +14,9 @@
 var EventPluginHub = require('EventPluginHub');
 
 function runEventQueueInBatch(events) {
+  // 先将events事件放入队列中
   EventPluginHub.enqueueEvents(events);
+  //触发该事件队列中的所有事件
   EventPluginHub.processEventQueue(false);
 }
 
@@ -29,12 +31,14 @@ var ReactEventEmitterMixin = {
     nativeEvent,
     nativeEventTarget,
   ) {
+    //获取具体事件
     var events = EventPluginHub.extractEvents(
       topLevelType,
       targetInst,
       nativeEvent,
       nativeEventTarget,
     );
+    //将事件放入队列中
     runEventQueueInBatch(events);
   },
 };

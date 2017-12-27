@@ -39,9 +39,7 @@ function listenerAtPhase(inst, event, propagationPhase: PropagationPhases) {
  * "dispatch" object that pairs the event with the listener.
  */
 function accumulateDirectionalDispatches(inst, phase, event) {
-  if (__DEV__) {
-    warning(inst, 'Dispatching inst must not be null');
-  }
+  // 通过组件实例以及事件，获取具体的回调
   var listener = listenerAtPhase(inst, event, phase);
   if (listener) {
     event._dispatchListeners = accumulateInto(
@@ -96,6 +94,7 @@ function accumulateDispatches(inst, ignoredDirection, event) {
     var registrationName = event.dispatchConfig.registrationName;
     var listener = getListener(inst, registrationName);
     if (listener) {
+      // 将具体的event以及实例放入event下面的数组之中
       event._dispatchListeners = accumulateInto(
         event._dispatchListeners,
         listener,

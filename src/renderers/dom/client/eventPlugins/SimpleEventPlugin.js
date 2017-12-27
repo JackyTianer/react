@@ -272,17 +272,14 @@ var SimpleEventPlugin: PluginModule<MouseEvent> = {
         EventConstructor = SyntheticClipboardEvent;
         break;
     }
-    invariant(
-      EventConstructor,
-      'SimpleEventPlugin: Unhandled event type, `%s`.',
-      topLevelType,
-    );
+    // 从缓存池中获取对应的event
     var event = EventConstructor.getPooled(
       dispatchConfig,
       targetInst,
       nativeEvent,
       nativeEventTarget,
     );
+    //最后实际调用了ReactDOMTraversal中的traverseTwoPhase方法
     EventPropagators.accumulateTwoPhaseDispatches(event);
     return event;
   },

@@ -56,23 +56,24 @@ PooledClass.addPoolingTo(
 );
 
 function handleTopLevelImpl(bookKeeping) {
+  // 获取这个event的真是dom元素，如果是text节点，则返回父容器
   var nativeEventTarget = getEventTarget(bookKeeping.nativeEvent);
+  // 获取事件节点所对应的react实例
   var targetInst = ReactDOMComponentTree.getClosestInstanceFromNode(
     nativeEventTarget,
   );
 
-  // Loop through the hierarchy, in case there's any nested components.
-  // It's important that we build the array of ancestors before calling any
-  // event handlers, because event handlers can modify the DOM, leading to
-  // inconsistencies with ReactMount's node cache. See #1105.
   var ancestor = targetInst;
+  // 将该组件所有父节点放入ancestors，因为事件可能会改变父节点结构，因此在执行事件回调之前缓存当前parent
   do {
     bookKeeping.ancestors.push(ancestor);
     ancestor = ancestor && findParent(ancestor);
   } while (ancestor);
 
+
   for (var i = 0; i < bookKeeping.ancestors.length; i++) {
     targetInst = bookKeeping.ancestors[i];
+    // 从当前组件开始执行注册的事件，模拟冒泡操作
     ReactEventListener._handleTopLevel(
       bookKeeping.topLevelType,
       targetInst,
